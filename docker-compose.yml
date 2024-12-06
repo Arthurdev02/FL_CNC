@@ -1,0 +1,32 @@
+services:
+  # Service Apache et PHP
+  apache:
+    build: apache  # Utilisation d'un dockerfile pour le service Apache
+    container_name: apache   # nom du conteneur
+    restart: always # redémarrage automatique
+    ports: 
+      - "80:80" # On utilise le port 80 de l'extérieur vers le port 80 du container
+    volumes:
+      - ./www:/var/www/html # afin d'éviter de rebuild on câble le répertoire ./www vers le docker
+    environment:
+      PHP_ERROR_REPORTING: "E_ALL" # on affiche le debug PHP
+      PHP_DISPLAY_ERRORS: "On" # et les erreurs
+  
+  #Service MariaDB
+  mariadb:
+    image: mariadb:latest   #image officielle mariadb
+    container_name: mariadb
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:              # on set les informations par défaut
+      MYSQL_ROOT_PASSWORD: "Stage@1234"
+      MYSQL_DATABASE: "fly_cnc"
+      MYSQL_USER: "admin"
+      MYSQL_PASSWORD: "Stage@1234"
+    volumes:
+      - mysql:/var/lib/mysql # montage du volume pour stocker les données 
+      - ./db:/root  # envoie le repertoire DB qui contient la base de données dans le container 
+  # liste des volumes
+volumes:
+  mysql:
