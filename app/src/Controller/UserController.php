@@ -2,155 +2,111 @@
 
 namespace App\Controller;
 
-use Laminas\Diactoros\ServerRequest;
+use App\Repository\UserRepository;
+use App\Middleware\AuthMiddleware;
 
-use Symplefony\Controller;
-use Symplefony\View;
-
-use App\Model\Entity\Address;
-use App\Model\Repository\RepoManager;
-use App\Model\Entity\User;
-
-class UserController extends Controller
+class UserController
 {
-    /**
-     * Pages publiques
-     */
-    // Visiteur: Affichage du formulaire de création de compte
-    public function displaySubscribe(): void
+    protected $repository;
+
+    public function __construct()
     {
-        $view = new View( 'user:create-account' );
-
-        $data = [
-            'title' => 'Créer mon compte - Autodingo.com'
-        ];
-
-        $view->render( $data );
+        $this->repository = new UserRepository();
     }
 
-    // Visiteur: Traitement du formulaire de création de compte
-    public function processSubscribe(): void
+    // Afficher le formulaire d'inscription
+    public function register()
     {
-        // TODO: :)
-    }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Récupérer les données du formulaire
+            $passwordHash = password_hash($_POST['password'], PASSWORD_BCRYPT);
+            $data = [
+                'email' => $_POST['email'],
+                'password' => $passwordHash,
+                'lastname' => $_POST['lastname'],
+                'firstname' => $_POST['firstname'],
+                'phone_number' => $_POST['phone_number'],
+                'id_role' => 2 // L'id_role pour un utilisateur normal (par exemple 2 pour un utilisateur classique)
+            ];
 
-    /**
-     * Pages Administrateur
-     */
-
-    // Admin: Affichage du formulaire de création d'un utilisateur
-    public function add(): void
-    {
-        $view = new View( 'user:admin:create' );
-
-        $data = [
-            'title' => 'Ajouter un utilisateur'
-        ];
-
-        $view->render( $data );
-    }
-
-    // Admin: Traitement du formulaire de création d'un utilisateur
-    public function create( ServerRequest $request ): void
-    {
-        $user_data = $request->getParsedBody();
-
-        $address = new Address( $user_data );
-
-        $address_created = RepoManager::getRM()->getAddressRepo()->create( $address );
-
-        if( is_null( $address_created ) ) {
-            // TODO: gérer une erreur
-            $this->redirect( '/admin/users/add' );
+            // Créer l'utilisateur dans la base de données
+            $this->repository->create($data);
+            header('Location: /login');
+            exit;
         }
 
-        $user = new User( $user_data );
-        $user->setAddressId( $address_created->getId() );
-        $user->setAddress( $address_created );
-
-        $user_created = RepoManager::getRM()->getUserRepo()->create( $user );
-
-        if( is_null( $user_created ) ) {
-            // TODO: gérer une erreur
-            $this->redirect( '/admin/users/add' );
-        }
-
-        $this->redirect( '/admin/users' );
+        require __DIR__ . '/../../views/user/register.phtml'; // Afficher le formulaire d'inscription
     }
 
-    // Admin: Liste
-    public function index(): void
+    // Afficher le formulaire de connexion
+    public function login()
     {
-        $view = new View( 'user:admin:list' );
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $email = $_POST['email'];
+            $password = $_POST['password'];
 
-        $data = [
-            'title' => 'Liste des utilisateurs',
-            'users' => RepoManager::getRM()->getUserRepo()->getAll()
-        ];
+            // Récupérer l'utilisateur de la base de données par email
+            $user = $this->repository->findByEmail($email);
 
-        $view->render( $data );
+            if ($user && password_verify($password, $user->getPassword())) {
+                // L'utilisateur existe et les identifiants sont corrects
+                session_start();
+                $_SESSION['user_id'] = $user->getId();
+                header('Location: /');
+                exit;
+            } else {
+                // Erreur d'authentification
+                $error = "Identifiants incorrects.";
+            }
+        }
+
+        require __DIR__ . '/../../views/user/login.phtml'; // Afficher le formulaire de connexion
     }
 
-    // Admin: Détail
-    public function show( int $id ): void
+    // Déconnexion de l'utilisateur
+    public function logout()
     {
-        $view = new View( 'user:admin:details' );
-
-        $user = RepoManager::getRM()->getUserRepo()->getById( $id );
-
-        // Si l'utilisateur demandé n'existe pas
-        if( is_null( $user ) ) {
-            View::renderError( 404 );
-            return;
-        }
-
-        $data = [
-            'title' => 'Utilisateur: '. $user->getEmail(),
-            'user' => $user
-        ];
-
-        $view->render( $data );
+        session_start();
+        session_destroy(); // Détruire la session pour déconnecter l'utilisateur
+        header('Location: /login'); // Rediriger vers la page de connexion
+        exit;
     }
 
-    // Admin: Traitement du formulaire de modification
-    public function update( ServerRequest $request, int $id ): void
+    // Afficher le profil de l'utilisateur (par exemple, modification de profil)
+    public function profile()
     {
-        $user_data = $request->getParsedBody();
+        // Vérifier que l'utilisateur est connecté
+        AuthMiddleware::checkAuth();
 
-        $user = new User( $user_data );
-        $user->setId( $id );
+        $userId = $_SESSION['user_id'];
+        $user = $this->repository->findById($userId);
 
-        $user_updated = RepoManager::getRM()->getUserRepo()->update( $user );
-
-        if( is_null( $user_updated ) ) {
-            // TODO: gérer une erreur
-            $this->redirect( '/admin/users/'. $id );
-        }
-
-        // Update de l'addresse
-        $address = new Address( $user_data );
-        $address->setId( $user_updated->getAddressId() );
-
-        $address_updated = RepoManager::getRM()->getAddressRepo()->update( $address );
-
-        if( is_null( $address_updated ) ) {
-            // TODO: gérer une erreur
-            $this->redirect( '/admin/users/'. $id );
-        }
-
-        $this->redirect( '/admin/users' );
+        require __DIR__ . '/../../views/user/profile.phtml'; // Afficher la page de profil
     }
 
-    // Admin: Suppression
-    public function delete( int $id ): void
+    // Modifier les informations du profil
+    public function updateProfile()
     {
-        $delete_success = RepoManager::getRM()->getUserRepo()->deleteOne( $id );
+        // Vérifier que l'utilisateur est connecté
+        AuthMiddleware::checkAuth();
 
-        if( ! $delete_success ) {
-            // TODO: gérer une erreur
-            $this->redirect( '/admin/users/'. $id );
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId = $_SESSION['user_id'];
+            $data = [
+                'email' => $_POST['email'],
+                'lastname' => $_POST['lastname'],
+                'firstname' => $_POST['firstname'],
+                'phone_number' => $_POST['phone_number']
+            ];
+
+            // Mettre à jour les informations de l'utilisateur dans la base de données
+            $this->repository->update($userId, $data);
+            header('Location: /user/profile');
+            exit;
         }
 
-        $this->redirect( '/admin/users' );
+        $userId = $_SESSION['user_id'];
+        $user = $this->repository->findById($userId);
+        require __DIR__ . '/../../views/user/edit-profile.phtml'; // Afficher le formulaire d'édition du profil
     }
 }

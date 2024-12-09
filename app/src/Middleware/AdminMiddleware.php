@@ -1,21 +1,15 @@
 <?php
 
+
 namespace App\Middleware;
 
-use App\Controller\AuthController;
-use Closure;
-use Laminas\Diactoros\Response\RedirectResponse;
-use Psr\Http\Message\ServerRequestInterface;
-use Symplefony\IMiddleware;
-
-class AdminMiddleware implements IMiddleware
+class AdminMiddleware
 {
-    public function handle( ServerRequestInterface $request, Closure $next ): mixed
+    public static function checkAdmin()
     {
-        if( AuthController::isAdmin() ) {
-            return $next( $request );
+        if ($_SESSION['role'] != 1) {
+            header('Location: /home'); // Redirige si ce n'est pas un owner
+            exit;
         }
-
-        return new RedirectResponse( '/' );
     }
 }

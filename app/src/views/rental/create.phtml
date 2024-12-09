@@ -1,0 +1,7 @@
+<h1>Réservez ce logement</h1>
+<form method="POST">
+    <label>Date de début : <input type="date" name="date_from" required></label>
+    <label>Date de fin : <input type="date" name="date_to" required></label>
+    <input type="hidden" name="id_accommodation" value="<?php echo $accommodationId; ?>">
+    <button type="submit">Réserver</button>
+</form>

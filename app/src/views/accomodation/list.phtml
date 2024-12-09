@@ -1,0 +1,17 @@
+<h1>Liste des logements disponibles</h1>
+<form method="GET" action="/accommodations/search">
+    <label>Ville : <input type="text" name="city"></label>
+    <label>Type : <input type="text" name="type"></label>
+    <label>Prix max : <input type="number" name="price_max"></label>
+    <button type="submit">Rechercher</button>
+</form>
+
+<ul>
+    <?php foreach ($accommodations as $accommodation): ?>
+        <li>
+            <p><?php echo $accommodation['description']; ?></p>
+            <p>Prix : <?php echo $accommodation['price']; ?> EUR</p>
+            <a href="/rental/create?id_accommodation=<?php echo $accommodation['id']; ?>">Réserver</a>
+        </li>
+    <?php endforeach; ?>
+</ul>

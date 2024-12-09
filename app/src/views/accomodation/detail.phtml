@@ -1,0 +1,10 @@
+<h1>Détails du logement</h1>
+<p>Description : <?php echo $accommodation['description']; ?></p>
+<p>Prix : <?php echo $accommodation['price']; ?> EUR</p>
+
+<h2>Équipements :</h2>
+<ul>
+    <?php foreach ($equipments as $equipment): ?>
+        <li><?php echo $equipment['label']; ?></li>
+    <?php endforeach; ?>
+</ul>
