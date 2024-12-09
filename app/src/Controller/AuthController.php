@@ -2,17 +2,20 @@
 
 namespace App\Controller;
 
-use App\Repository\UserRepository;
+use App\Model\Repository\UserRepository;
 use App\Model\User;
 use App\Middleware\AuthMiddleware;
+use PDO;
 
 class AuthController
 {
-    private $userRepository;
+    private $pdo;
 
     public function __construct()
     {
-        $this->userRepository = new UserRepository();
+        // Connexion PDO à la base de données
+        $this->pdo = new PDO('mysql:host=localhost;dbname=nom_de_votre_db', 'utilisateur', 'mot_de_passe');
+        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
 
     // Page de connexion
@@ -22,13 +25,15 @@ class AuthController
             $email = $_POST['email'];
             $password = $_POST['password'];
 
-            // Vérifier l'utilisateur
-            $user = $this->userRepository->findByEmail($email);
+            // Exécution de la requête SQL pour vérifier l'utilisateur
+            $stmt = $this->pdo->prepare('SELECT * FROM users WHERE email = :email');
+            $stmt->execute(['email' => $email]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($user && password_verify($password, $user['password'])) {
-                // Lors de la connexion de l'utilisateur
-                $_SESSION['user_id'] = $user->getId();
-                $_SESSION['role'] = $user->getRole(); // 1 pour Owner, 2 pour User
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['role'] = $user['id_role']; // Stocke le rôle dans la session
+
                 // Rediriger selon le rôle
                 if ($user['id_role'] == 1) {
                     header('Location: /owner'); // Accès à la page owner
@@ -44,8 +49,6 @@ class AuthController
         require __DIR__ . '/../../views/auth/login.phtml';
     }
 
-
-
     // Page d'inscription
     public function register()
     {
@@ -59,7 +62,9 @@ class AuthController
             $phone_number = $_POST['phone_number'];
 
             // Vérification si l'email existe déjà
-            $existingUser = $this->userRepository->findByEmail($email);
+            $stmt = $this->pdo->prepare('SELECT * FROM users WHERE email = :email');
+            $stmt->execute(['email' => $email]);
+            $existingUser = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($existingUser) {
                 $error = "L'email est déjà utilisé.";
@@ -70,16 +75,23 @@ class AuthController
                 $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
                 // Création du nouvel utilisateur
-                $userData = [
+                $stmt = $this->pdo->prepare('
+                    INSERT INTO users (email, password, firstname, lastname, phone_number, id_role)
+                    VALUES (:email, :password, :firstname, :lastname, :phone_number, :id_role)
+                ');
+
+                // Exécution de la requête pour ajouter l'utilisateur
+                $stmt->execute([
                     'email' => $email,
                     'password' => $hashedPassword,
                     'firstname' => $firstname,
                     'lastname' => $lastname,
                     'phone_number' => $phone_number,
                     'id_role' => 2 // Par défaut, un utilisateur est un client (id_role=2)
-                ];
+                ]);
 
-                $userId = $this->userRepository->create($userData);
+                // Récupérer l'ID du nouvel utilisateur
+                $userId = $this->pdo->lastInsertId();
 
                 // Connexion automatique après l'inscription
                 session_start();

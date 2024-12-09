@@ -2,14 +2,12 @@
 
 namespace App\Middleware;
 
-use App\Model\User;
-use App\Repository\UserRepository;
-
 class AuthMiddleware
 {
-    public static function checkAuth()
+    public static function checkUser()
     {
-        if (!isset($_SESSION['user_id'])) {
+        // Vérifier que l'utilisateur est connecté
+        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'user') {
             header('Location: /login');
             exit;
         }
@@ -17,26 +15,18 @@ class AuthMiddleware
 
     public static function checkOwner()
     {
-        self::checkAuth();  // Vérifier si l'utilisateur est connecté
-
-        $userRepo = new UserRepository();
-        $user = $userRepo->findById($_SESSION['user_id']);
-
-        if (!$user->isOwner()) {
-            header('Location: /'); // Rediriger si ce n'est pas un Owner
+        // Vérifier que l'utilisateur est un Owner
+        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'owner') {
+            header('Location: /login');
             exit;
         }
     }
 
-    public static function checkUser()
+    public static function checkAdmin()
     {
-        self::checkAuth();  // Vérifier si l'utilisateur est connecté
-
-        $userRepo = new UserRepository();
-        $user = $userRepo->findById($_SESSION['user_id']);
-
-        if (!$user->isUser()) {
-            header('Location: /'); // Rediriger si ce n'est pas un User
+        // Vérifier que l'utilisateur est un Admin
+        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+            header('Location: /login');
             exit;
         }
     }
