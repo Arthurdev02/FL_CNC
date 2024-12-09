@@ -2,32 +2,10 @@
 
 namespace App\Controller;
 
-use PDO;
-
-use Symplefony\Controller;
-use Symplefony\Database;
-use Symplefony\View;
-
-use App\Model\UserModel;
-class PageController extends Controller
+class PageController
 {
-    // Page d'accueil
-    public function index(): void
+    public function home()
     {
-        $view = new View( 'page:home' );
-
-        $data = [
-            'title' => 'Accueil - Autodingo.com'
-        ];
-
-        $view->render( $data );
-    }
-
-    // Page mentions légales
-    public function legalNotice(): void
-    {
-        echo 'Les mentions légales !';
-
-        var_dump( UserModel::getById(4) );
+        require __DIR__ . '/../../views/page/home.phtml';
     }
 }

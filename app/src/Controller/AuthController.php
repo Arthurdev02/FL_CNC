@@ -2,13 +2,43 @@
 
 namespace App\Controller;
 
-use Symplefony\Controller;
+use App\Model\Repository\UserRepository;
 
-class AuthController extends Controller
+class AuthController
 {
-    public static function isAdmin(): bool
+    private $repository;
+
+    public function __construct()
     {
-        // TODO: Le vrai contrôle de session
-        return true;
+        $this->repository = new UserRepository();
+    }
+
+    public function login()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $email = $_POST['email'];
+            $password = $_POST['password'];
+
+            $user = $this->repository->findByEmail($email);
+
+            if ($user && password_verify($password, $user->getPassword())) {
+                session_start();
+                $_SESSION['user_id'] = $user->getId();
+                header('Location: /');
+                exit;
+            } else {
+                $error = "Identifiants incorrects.";
+            }
+        }
+
+        require __DIR__ . '/../../views/user/login.phtml';
+    }
+
+    public function logout()
+    {
+        session_start();
+        session_destroy();
+        header('Location: /');
+        exit;
     }
 }

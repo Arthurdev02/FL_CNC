@@ -1,0 +1,9 @@
+<h1>Connexion</h1>
+<?php if (!empty($error)): ?>
+    <p style="color: red;"><?= $error ?></p>
+<?php endif; ?>
+<form method="POST">
+    <label>Email : <input type="email" name="email" required></label>
+    <label>Mot de passe : <input type="password" name="password" required></label>
+    <button type="submit">Se connecter</button>
+</form>

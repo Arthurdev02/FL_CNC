@@ -1,29 +1,32 @@
 volumes:
-  mariadb_poo: #déclaration du volume pour la base
+  AirBnB:
+    #déclaration du volume pour la base
 
 services:
 
   # container de bdd
-  database: #nom de service
-    container_name: mariadb_poo
+  database:
+    #nom de service
+    container_name: AirBnB
     image: mariadb:latest
     ports:
       - '3307:3306'
     volumes:
-      - mariadb_poo:/var/lib/mysql
+      - AirBnB:/var/lib/mysql
       - ./db:/root
     command: --default-authentication-plugin=mysql_native_password
     restart: always
     environment:
       TZ: Europe/Paris
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: poo
+      MYSQL_ROOT_PASSWORD: AirBnB
+      MYSQL_DATABASE: AirBnB
       MYSQL_USER: admin
       MYSQL_PASSWORD: admin
+      
 
   # container php
   php:
-    container_name: php_poo
+    container_name: php_AirBnB
     build:
       context: ./php
     sysctls:
@@ -45,7 +48,7 @@ services:
 
   # server web
   nginx:
-    container_name: nginx_poo
+    container_name: nginx_AirBnB
     image: nginx:stable-alpine
     sysctls:
       - net.ipv4.ip_unprivileged_port_start=0

@@ -1,0 +1,10 @@
+<h1>Liste des logements</h1>
+<ul>
+    <?php foreach ($accommodations as $accommodation): ?>
+        <li>
+            <a href="/accommodations/details?id=<?= $accommodation->getId() ?>">
+                Logement #<?= $accommodation->getId() ?> - <?= $accommodation->getDescription() ?>
+            </a>
+        </li>
+    <?php endforeach; ?>
+</ul>
