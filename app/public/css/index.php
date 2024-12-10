@@ -1,8 +1,21 @@
 <?php
-// Inclure la connexion à la base de données
-require_once __DIR__ . '/../src/Model/db_connect.php';
 
-// Exemple de contenu temporaire (page de test)
-echo "<h1>Bienvenue sur notre site AirBnB Clone !</h1>";
+require_once __DIR__ . '/../src/db_connect.php'; 
+require_once __DIR__ . '/../src/Model/AccommodationModel.php'; 
+require_once __DIR__ . '/../src/Controller/AccommodationController.php'; 
+// Démarrer la session (si ce n'est pas déjà fait, pour la gestion des utilisateurs connectés)
+session_start();
 
-// Redirection vers les routes ou autres fonctionnalités viendra ici
+// Contrôleur principal pour les annonces
+$controller = new AccommodationController();
+
+// Vérifier si la requête est pour la création d'une annonce
+if ($_SERVER['REQUEST_URI'] === '/create-accommodation' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller->createAccommodation();
+} elseif ($_SERVER['REQUEST_URI'] === '/create-accommodation' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $controller->createForm();
+} elseif ($_SERVER['REQUEST_URI'] === '/user/accommodations') {
+    $controller->listUserAccommodations();
+} else {
+    echo "Page non trouvée."; 
+}

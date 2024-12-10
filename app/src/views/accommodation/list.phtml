@@ -1,0 +1,29 @@
+<h1>Mes annonces</h1>
+<?php if (empty($accommodations)) : ?>
+    <p>Aucune annonce publiée.</p>
+<?php else : ?>
+    <table>
+        <thead>
+            <tr>
+                <th>Prix</th>
+                <th>Surface</th>
+                <th>Description</th>
+                <th>Capacité</th>
+                <th>Type de logement</th>
+                <th>Adresse</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($accommodations as $accommodation) : ?>
+                <tr>
+                    <td><?= $accommodation['price'] ?> €</td>
+                    <td><?= $accommodation['surface'] ?> m²</td>
+                    <td><?= $accommodation['description'] ?></td>
+                    <td><?= $accommodation['capacity'] ?> personnes</td>
+                    <td><?= $accommodation['id_type'] == 1 ? 'Logement entier' : ($accommodation['id_type'] == 2 ? 'Chambre privée' : 'Chambre partagée') ?></td>
+                    <td><?= $accommodation['id_address'] ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+<?php endif; ?>
