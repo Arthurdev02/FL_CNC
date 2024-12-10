@@ -1,0 +1,32 @@
+<h1>Inscription</h1>
+<form method="POST" action="/register">
+    <!-- Champ pour le prénom -->
+    <label for="firstname">Prénom :</label>
+    <input type="text" id="firstname" name="firstname" required>
+
+    <!-- Champ pour le nom -->
+    <label for="lastname">Nom :</label>
+    <input type="text" id="lastname" name="lastname" required>
+
+    <!-- Champ pour l'email -->
+    <label for="email">Email :</label>
+    <input type="email" id="email" name="email" required>
+
+    <!-- Champ pour le mot de passe -->
+    <label for="password">Mot de passe :</label>
+    <input type="password" id="password" name="password" required>
+
+    <!-- Champ pour le numéro de téléphone -->
+    <label for="phone_number">Téléphone :</label>
+    <input type="tel" id="phone_number" name="phone_number" required>
+
+    <!-- Sélection pour le type de compte -->
+    <label for="id_role">Type de compte :</label>
+    <select id="id_role" name="id_role" required>
+        <option value="1">Annonceur</option>
+        <option value="2">Utilisateur standard</option>
+    </select>
+
+    <!-- Bouton pour soumettre le formulaire -->
+    <button type="submit">S'inscrire</button>
+</form>
